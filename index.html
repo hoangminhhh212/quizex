@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đố Vui Tri Thức - Liquid Glass</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        glass: {
+                            light: 'rgba(255, 255, 255, 0.15)',
+                            border: 'rgba(255, 255, 255, 0.25)',
+                            glow: 'rgba(255, 255, 255, 0.4)',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS tùy chỉnh -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 md:p-6 relative">
+
+    <!-- Background Ambient Blobs -->
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="liquid-blob blob-3"></div>
+
+    <!-- Screen RGB LED Overlay (Auto-triggers on Win) -->
+    <div id="rgbLedFrame" class="rgb-led-border"></div>
+
+    <!-- Canvas Confetti Overlay -->
+    <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-40 w-full h-full"></canvas>
+
+    <!-- Main Container Card -->
+    <main class="w-full max-w-2xl relative z-10">
+
+        <!-- START SCREEN -->
+        <div id="startScreen" class="liquid-glass rounded-[40px] p-8 md:p-12 text-center transition-all duration-500 transform">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-xs font-semibold tracking-wider uppercase mb-6 backdrop-blur-md text-cyan-300 shadow-inner">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                Liquid Glass Quiz
+            </div>
+
+            <h1 class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-400 mb-4 tracking-tight leading-tight">
+                ĐỐ VUI TRI THỨC
+            </h1>
+
+            <p class="text-slate-300 text-sm md:text-base max-w-md mx-auto mb-8 font-normal leading-relaxed">
+                Khám phá kho tàng kiến thức thú vị qua 10 câu hỏi trắc nghiệm ngắn. Nhận báo cáo chi tiết và hiệu ứng đặc biệt khi chiến thắng!
+            </p>
+
+            <button onclick="quizApp.startQuiz()" class="pill-option shimmer w-full sm:w-auto px-10 py-4 rounded-full font-bold text-lg bg-gradient-to-r from-cyan-500/80 to-blue-600/80 hover:from-cyan-400 hover:to-blue-500 border border-white/30 text-white shadow-lg transition-all duration-300 flex items-center justify-center gap-3 mx-auto group">
+                <span>Bắt Đầu Ngay</span>
+                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- QUIZ SCREEN -->
+        <div id="quizScreen" class="liquid-glass rounded-[40px] p-6 md:p-10 transition-all duration-500 transform hidden">
+            <!-- Header Status Bar -->
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <span id="questionCounterBadge" class="px-4 py-1.5 rounded-full text-xs font-bold bg-white/10 border border-white/20 text-cyan-300 backdrop-blur-md shadow-inner">
+                        Câu 1/10
+                    </span>
+                </div>
+
+                <!-- Timer Pill -->
+                <div class="flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/20 border border-white/10 text-xs font-semibold text-slate-300">
+                    <svg class="w-4 h-4 text-amber-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation-duration: 8s;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span id="timerText">15s</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar Pill -->
+            <div class="w-full bg-white/5 rounded-full h-2.5 mb-8 p-0.5 border border-white/10 overflow-hidden">
+                <div id="progressBar" class="bg-gradient-to-r from-cyan-400 to-blue-500 h-full rounded-full transition-all duration-500 ease-out" style="width: 10%;"></div>
+            </div>
+
+            <!-- Question Box -->
+            <div class="mb-8">
+                <h2 id="questionText" class="text-xl md:text-2xl font-bold text-white leading-relaxed tracking-wide min-h-[60px] flex items-center">
+                    Đang tải câu hỏi...
+                </h2>
+            </div>
+
+            <!-- Answer Pill Options Grid -->
+            <div id="optionsContainer" class="grid grid-cols-1 gap-3 md:gap-4">
+                <!-- Dynamically generated pill buttons (app.js) -->
+            </div>
+
+            <!-- Footer Action Bar -->
+            <div class="mt-8 flex items-center justify-between pt-4 border-t border-white/10">
+                <p class="text-xs text-slate-400 italic">Chọn 1 phương án để tiếp tục</p>
+                <button id="nextBtn" onclick="quizApp.nextQuestion()" disabled class="px-6 py-2.5 rounded-full text-sm font-semibold bg-white/10 border border-white/15 text-slate-400 opacity-50 cursor-not-allowed transition-all duration-300 flex items-center gap-2">
+                    <span>Câu Tiếp</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- RESULT REPORT SCREEN -->
+        <div id="resultScreen" class="liquid-glass rounded-[40px] p-6 md:p-10 text-center transition-all duration-500 transform hidden">
+
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-bold uppercase tracking-wider text-slate-300 mb-6">
+                Báo Cáo Kết Quả
+            </div>
+
+            <!-- Score Pill Circle -->
+            <div class="relative w-36 h-36 mx-auto mb-6 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-500/20 to-pink-500/20 animate-pulse blur-xl"></div>
+                <div class="relative z-10 w-full h-full rounded-full bg-black/30 border-2 border-white/30 backdrop-blur-xl flex flex-col items-center justify-center p-4 shadow-2xl">
+                    <span id="scorePercent" class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-emerald-400">0%</span>
+                    <span id="scoreFraction" class="text-xs font-medium text-slate-400 mt-1">0/10 Đúng</span>
+                </div>
+            </div>
+
+            <h2 id="resultTitle" class="text-2xl md:text-3xl font-extrabold text-white mb-2">
+                Xuất Sắc!
+            </h2>
+            <p id="resultSubtitle" class="text-sm text-slate-300 max-w-md mx-auto mb-8 leading-relaxed">
+                Bạn đã hoàn thành bài đố vui tri thức.
+            </p>
+
+            <!-- Detailed Stats Pill Cards -->
+            <div class="grid grid-cols-3 gap-3 mb-8">
+                <div class="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-3 text-center">
+                    <span class="block text-xs text-slate-400 mb-1">Số câu</span>
+                    <span class="text-lg font-bold text-white">10</span>
+                </div>
+                <div class="bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md rounded-2xl p-3 text-center">
+                    <span class="block text-xs text-emerald-400 mb-1">Chính xác</span>
+                    <span id="correctCount" class="text-lg font-bold text-emerald-400">0</span>
+                </div>
+                <div class="bg-rose-500/10 border border-rose-500/20 backdrop-blur-md rounded-2xl p-3 text-center">
+                    <span class="block text-xs text-rose-400 mb-1">Chưa đúng</span>
+                    <span id="wrongCount" class="text-lg font-bold text-rose-400">0</span>
+                </div>
+            </div>
+
+            <!-- Answer Breakdown Accordion/List -->
+            <div class="text-left mb-8">
+                <h3 class="text-sm font-bold text-slate-300 mb-3 px-1 flex items-center justify-between">
+                    <span>Xem lại chi tiết</span>
+                    <span class="text-xs font-normal text-slate-400">Cuộn để xem hết</span>
+                </h3>
+                <div id="reviewList" class="max-h-52 overflow-y-auto pr-2 space-y-2.5">
+                    <!-- Dynamic review items (app.js) -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <button onclick="quizApp.restartQuiz()" class="pill-option shimmer px-8 py-3.5 rounded-full font-bold text-sm bg-gradient-to-r from-cyan-500/80 to-blue-600/80 hover:from-cyan-400 hover:to-blue-500 border border-white/30 text-white shadow-lg transition-all duration-300 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>Thử Lại Lần Nữa</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Thứ tự nạp quan trọng: question.js trước, app.js sau -->
+    <script src="question.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
